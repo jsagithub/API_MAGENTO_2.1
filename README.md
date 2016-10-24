@@ -1,5 +1,5 @@
 # API_MAGENTO_2.1
-# Test OAUTH (Not Work)
+# Test OAUTH (Works)
 # Test Token-based authentication (Works)
 
 1- Connect to Magento
