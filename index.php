@@ -1,58 +1,63 @@
 
 <?php
-/**
- * Copyright Magento 2012
- * Example of products list retrieve using Customer account via Magento
-REST API. OAuth authorization is used
- */
-/*
-$callbackUrl = "http://localhost:8081/index.php";
-$temporaryCredentialsRequestUrl =
-"http://localhost/oauth/initiate?oauth_callback=" .
-urlencode($callbackUrl);
-$adminAuthorizationUrl = 'http://localhost/oauth/authorize';
-$accessTokenRequestUrl = 'http://localhos/oauth/token';
-$apiUrl = 'http://localhos/rest';
-$consumerKey = '98duvfuq624ykppnkth0n4009itt88aa';
-$consumerSecret = '73m5ldi0himbryq0g99m641gr5kk9pjg';
-session_start();
-if (!isset($_GET['oauth_token']) && isset($_SESSION['state']) &&
-$_SESSION['state'] == 1) {
-   $_SESSION['state'] = 0;
+/** OAUTH 
+<?php
+
+function sign($method, $url, $data, $consumerSecret, $tokenSecret)
+{
+  $url = urlEncodeAsZend($url);
+ 
+  $data = urlEncodeAsZend(http_build_query($data, '', '&'));
+  $data = implode('&', [$method, $url, $data]);
+ 
+  $secret = implode('&', [$consumerSecret, $tokenSecret]);
+ 
+  return base64_encode(hash_hmac('sha1', $data, $secret, true));
 }
-try {
-   $authType = ($_SESSION['state'] == 2) ? OAUTH_AUTH_TYPE_AUTHORIZATION
-: OAUTH_AUTH_TYPE_URI;
-   $oauthClient = new OAuth($consumerKey, $consumerSecret,
-OAUTH_SIG_METHOD_HMACSHA1, $authType);
-   $oauthClient->enableDebug();
-   if (!isset($_GET['oauth_token']) && !$_SESSION['state']) {
-       $requestToken =
-$oauthClient->getRequestToken($temporaryCredentialsRequestUrl);
-       $_SESSION['secret'] = $requestToken['oauth_token_secret'];
-       $_SESSION['state'] = 1;
-       header('Location: ' . $adminAuthorizationUrl . '?oauth_token=' .
-$requestToken['oauth_token']);
-       exit;
-   } else if ($_SESSION['state'] == 1) {
-       $oauthClient->setToken($_GET['oauth_token'], $_SESSION['secret']);
-       $accessToken =
-$oauthClient->getAccessToken($accessTokenRequestUrl);
-       $_SESSION['state'] = 2;
-       $_SESSION['token'] = $accessToken['oauth_token'];
-       $_SESSION['secret'] = $accessToken['oauth_token_secret'];
-       header('Location: ' . $callbackUrl);
-       exit;
-   } else {
-       $oauthClient->setToken($_SESSION['token'], $_SESSION['secret']);
-       $resourceUrl = "$apiUrl/products";
-       $oauthClient->fetch($resourceUrl);
-       $productsList = json_decode($oauthClient->getLastResponse());
-       print_r($productsList);
-   }
-} catch (OAuthException $e) {
-   print_r($e);
+ 
+function urlEncodeAsZend($value)
+{
+  $encoded = rawurlencode($value);
+  $encoded = str_replace('%7E', '~', $encoded);
+  return $encoded;
 }
+ 
+// REPLACE WITH YOUR ACTUAL DATA OBTAINED WHILE CREATING NEW INTEGRATION
+$consumerKey = '';
+$consumerSecret = '';
+$accessToken = '';
+$accessTokenSecret = '';
+ 
+$method = 'GET';
+$url = 'http://localhost/rest/V1/customers/1';
+ 
+//
+$data = [
+  'oauth_consumer_key' => $consumerKey,
+  'oauth_nonce' => md5(uniqid(rand(), true)),
+  'oauth_signature_method' => 'HMAC-SHA1',
+  'oauth_timestamp' => time(),
+  'oauth_token' => $accessToken,
+  'oauth_version' => '1.0',
+];
+ 
+$data['oauth_signature'] = sign($method, $url, $data, $consumerSecret, $accessTokenSecret);
+ 
+$curl = curl_init();
+ 
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_URL => $url,
+  CURLOPT_HTTPHEADER => [
+    'Authorization: OAuth ' . http_build_query($data, '', ',')
+  ]
+]);
+ 
+$result = curl_exec($curl);
+curl_close($curl);
+var_dump($result);
+
+?>
 */
 
 $userData = array("username" => "admin", "password" => "");
